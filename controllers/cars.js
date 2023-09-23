@@ -8,6 +8,34 @@ const cars = JSON.parse(
     )
 );
 
+// MIDDLEWARE
+const checkId = (req, res, next, val) => {
+    const car = cars.find((el) => el.id === val);
+
+    if (!car) {
+        return res.status(404).json({
+            status: "failed",
+            message: `data with id ${val} not found.`,
+        });
+    }
+    next();
+};
+
+const checkBody = (req, res, next) => {
+    if (
+        !req.body.plate ||
+        !req.body.manufacture ||
+        !req.body.type
+    ) {
+        return res.status(404).json({
+            status: "failed",
+            message: `plate, manufacture, and type are required`,
+        });
+    }
+
+    next();
+};
+
 // FUNCTION
 const getAllCars = (req, res) => {
     res.status(200).json({
@@ -22,12 +50,6 @@ const getAllCars = (req, res) => {
 const getCarById = (req, res) => {
     const id = req.params.id;
     const car = cars.find((el) => el.id === id);
-    if (!car) {
-        return res.status(404).json({
-            status: "failed",
-            message: `data with ${id} this not found`,
-        });
-    }
 
     res.status(200).json({
         status: "success",
@@ -49,7 +71,7 @@ const createCar = (req, res) => {
 
     cars.push(newCar);
     fs.writeFile(
-        `${__dirname}/dev-data/data/cars.json`,
+        `${__dirname}/../dev-data/data/cars.json`,
         JSON.stringify(cars),
         (err) => [
             res.status(201).json({
@@ -65,16 +87,10 @@ const createCar = (req, res) => {
 
 const updateCar = (req, res) => {
     const id = req.params.id;
+
     const carIndex = cars.findIndex(
         (el) => el.id === id
     );
-
-    if (carIndex === -1) {
-        return res.status(404).json({
-            status: "failed",
-            message: `data with ${id} this not found`,
-        });
-    }
 
     cars[carIndex] = {
         ...cars[carIndex],
@@ -82,7 +98,7 @@ const updateCar = (req, res) => {
     };
 
     fs.writeFile(
-        `${__dirname}/dev-data/data/cars.json`,
+        `${__dirname}/../dev-data/data/cars.json`,
         JSON.stringify(cars),
         (err) => {
             res.status(200).json({
@@ -98,21 +114,15 @@ const updateCar = (req, res) => {
 
 const deleteCar = (req, res) => {
     const id = req.params.id;
+
     const carIndex = cars.findIndex(
         (el) => el.id === id
     );
 
-    if (carIndex === -1) {
-        return res.status(404).json({
-            status: "failed",
-            message: `data id ${id} not found`,
-        });
-    }
-
     cars.splice(carIndex, 1);
 
     fs.writeFile(
-        `${__dirname}/dev-data/data/cars.json`,
+        `${__dirname}/../dev-data/data/cars.json`,
         JSON.stringify(cars),
         (err) => {
             res.status(200).json({
@@ -130,4 +140,6 @@ module.exports = {
     createCar,
     updateCar,
     deleteCar,
+    checkId,
+    checkBody,
 };
